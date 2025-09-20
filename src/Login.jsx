@@ -1,37 +1,46 @@
-// src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import logo from "../src/assets/logo.webp"; 
+import logo from "../src/assets/logo.webp";
 
 export default function Login() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    // get user from local storage
-    const savedUser = JSON.parse(localStorage.getItem("fabclean_user"));
-    if (!savedUser) {
-      setError("No user found. Please sign up first.");
-      return;
-    }
+    try {
+      const res = await fetch("https://fabfab.onrender.com/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-    if (
-      savedUser.email === form.email &&
-      savedUser.password === form.password
-    ) {
-      // go to dashboard
-      navigate("/dashboard");
-    } else {
-      setError("Invalid email or password");
+      const data = await res.json();
+
+      if (res.ok) {
+        // Save JWT token
+        localStorage.setItem("fabfab_token", data.token);
+        // Optional: save user info
+        localStorage.setItem("fabfab_user", JSON.stringify(data.customer));
+        navigate("/dashboard");
+      } else {
+        setError(data.error || "Login failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,6 +68,7 @@ export default function Login() {
                 placeholder="Email"
                 value={form.email}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="mb-3">
@@ -69,6 +79,7 @@ export default function Login() {
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
+                required
               />
             </div>
 
@@ -78,8 +89,9 @@ export default function Login() {
               type="submit"
               className="btn w-100 mb-3 fw-semibold"
               style={{ backgroundColor: "#7cb342", color: "#fff" }}
+              disabled={loading}
             >
-              Log in
+              {loading ? "Logging in..." : "Log in"}
             </button>
           </form>
 

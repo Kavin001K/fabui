@@ -1,4 +1,3 @@
-// src/pages/Signup.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,7 +12,7 @@ export default function SignUp() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,54 +21,55 @@ export default function SignUp() {
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
   const validatePhone = (phone) => /^[0-9]{10}$/.test(phone); // 10 digits
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     // validations
-    if (!form.name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (!validatePhone(form.phone)) {
-      setError("Enter a valid 10-digit phone number");
-      return;
-    }
-    if (!validateEmail(form.email)) {
-      setError("Enter a valid email");
-      return;
-    }
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    if (!form.name.trim()) return setError("Name is required");
+    if (!validatePhone(form.phone))
+      return setError("Enter a valid 10-digit phone number");
+    if (!validateEmail(form.email)) return setError("Enter a valid email");
+    if (form.password.length < 6)
+      return setError("Password must be at least 6 characters");
+    if (form.password !== form.confirmPassword)
+      return setError("Passwords do not match");
 
-    // Save to local storage
-    const userData = {
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      password: form.password,
-    };
-    localStorage.setItem("fabclean_user", JSON.stringify(userData));
+    setLoading(true);
 
-    setSuccess("Signed up successfully ✅");
+    try {
+      const res = await fetch("https://fabfab.onrender.com/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          email: form.email,
+          password: form.password,
+        }),
+      });
 
-    // redirect to login after 2 seconds
-    setTimeout(() => {
-      navigate("/login");
-    }, 1500);
+      const data = await res.json();
+
+      if (res.ok) {
+        // save JWT and user info
+        localStorage.setItem("fabfab_token", data.token);
+        localStorage.setItem("fabfab_user", JSON.stringify(data.customer));
+
+        navigate("/dashboard");
+      } else {
+        setError(data.error || "Signup failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="vh-100 bg-light d-flex align-items-center justify-content-center">
-
-
       <div className="card p-4 shadow-sm border-0" style={{ width: "400px" }}>
         <h3 className="mb-4 text-center fw-bold" style={{ color: "#f57c00" }}>
           Create Account
@@ -83,6 +83,7 @@ export default function SignUp() {
               placeholder="Full Name"
               value={form.name}
               onChange={handleChange}
+              required
             />
           </div>
           <div className="mb-3">
@@ -93,6 +94,7 @@ export default function SignUp() {
               placeholder="Phone Number"
               value={form.phone}
               onChange={handleChange}
+              required
             />
           </div>
           <div className="mb-3">
@@ -103,6 +105,7 @@ export default function SignUp() {
               placeholder="Email"
               value={form.email}
               onChange={handleChange}
+              required
             />
           </div>
           <div className="mb-3">
@@ -113,6 +116,7 @@ export default function SignUp() {
               placeholder="Password"
               value={form.password}
               onChange={handleChange}
+              required
             />
           </div>
           <div className="mb-3">
@@ -123,18 +127,19 @@ export default function SignUp() {
               placeholder="Re-enter Password"
               value={form.confirmPassword}
               onChange={handleChange}
+              required
             />
           </div>
 
           {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
 
           <button
             type="submit"
             className="btn w-100 fw-semibold"
             style={{ backgroundColor: "#7cb342", color: "#fff" }}
+            disabled={loading}
           >
-            Sign Up
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
 

@@ -1,6 +1,6 @@
 // src/pages/Orders.jsx
 import React, { useEffect, useState } from "react";
-import logo from "../src/assets/logo.webp"; 
+import logo from "../src/assets/logo.webp";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -18,8 +18,9 @@ export default function Orders() {
     total: "",
   });
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Prefill from localStorage
+  // Prefill user from localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem("fabclean_user");
     if (savedUser) {
@@ -35,7 +36,7 @@ export default function Orders() {
 
   // Fetch services
   useEffect(() => {
-    fetch("http://localhost:5000/api/services")
+    fetch("https://fabfab.onrender.com/api/services")
       .then((res) => res.json())
       .then((data) => setServices(data))
       .catch((err) => console.error("Error fetching services:", err));
@@ -44,11 +45,10 @@ export default function Orders() {
   // Update total when service changes
   useEffect(() => {
     const selected = services.find((s) => s.id === form.serviceId);
-    if (selected) {
-      setForm((prev) => ({ ...prev, total: selected.price }));
-    } else {
-      setForm((prev) => ({ ...prev, total: "" }));
-    }
+    setForm((prev) => ({
+      ...prev,
+      total: selected ? selected.price : "",
+    }));
   }, [form.serviceId, services]);
 
   const handleChange = (e) => {
@@ -58,75 +58,97 @@ export default function Orders() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-
     if (!form.serviceId) {
       setMessage("❌ Please select a service");
       return;
     }
 
+    setLoading(true);
+
     try {
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch("https://fabfab.onrender.com/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          customerName: form.customerName,
+          customerEmail: form.customerEmail,
+          customerPhone: form.customerPhone,
+          serviceId: form.serviceId,
+          pickupDate: form.pickupDate,
+          specialInstructions: form.specialInstructions,
+          total: form.total,
+        }),
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setMessage(data.error || "Failed to create order");
+      if (res.status < 200 || res.status >= 300) {
+        setMessage(data.error || "❌ Failed to create order");
+        setLoading(false);
         return;
       }
 
       setMessage("✅ Order created successfully!");
-      setForm({
-        customerName: form.customerName, 
-        customerEmail: form.customerEmail,
-        customerPhone: form.customerPhone,
+      setForm((prev) => ({
+        ...prev,
         address: "",
         serviceId: "",
         pickupDate: "",
         specialInstructions: "",
         total: "",
-      });
+      }));
 
       // Refresh services
-      const updated = await fetch("http://localhost:5000/api/services").then(r => r.json());
+      const updated = await fetch(
+        "https://fabfab.onrender.com/api/services",
+      ).then((r) => r.json());
       setServices(updated);
-
     } catch (err) {
       console.error("Error submitting order:", err);
       setMessage("❌ Error submitting order");
     }
+
+    setLoading(false);
   };
 
   return (
     <div className="bg-light min-vh-100">
       {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-dark ">
+      <nav className="navbar navbar-expand-lg navbar-dark">
         <div className="container">
           <a className="navbar-brand d-flex align-items-center" href="#">
             <img src={logo} alt="FabClean Logo" height="40" className="me-2" />
           </a>
-
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 fw-semibold">
               <li className="nav-item mx-2">
-                <a className="nav-link text-black" href="./Dashboard/#home">Home</a>
+                <a className="nav-link text-black" href="./Dashboard/#home">
+                  Home
+                </a>
               </li>
               <li className="nav-item mx-2">
-                <a className="nav-link text-black" href="./Dashboard/#services">Services</a>
+                <a className="nav-link text-black" href="./Dashboard/#services">
+                  Services
+                </a>
               </li>
               <li className="nav-item mx-2">
-                <a className="nav-link text-black" href="./Dashboard#about">About us</a>
+                <a className="nav-link text-black" href="./Dashboard#about">
+                  About us
+                </a>
               </li>
               <li className="nav-item mx-2">
-                <a className="nav-link text-black" href="./Dashboard#contact">Contact us</a>
+                <a className="nav-link text-black" href="./Dashboard#contact">
+                  Contact us
+                </a>
               </li>
             </ul>
             <div className="d-flex ms-lg-3">
-              <a className="btn fw-semibold me-2" href="./Login">Login</a>
-              <a className="btn fw-semibold" href="/logout">Logout</a>
+              <a className="btn fw-semibold me-2" href="./Login">
+                Login
+              </a>
+              <a className="btn fw-semibold" href="/logout">
+                Logout
+              </a>
             </div>
           </div>
         </div>
@@ -197,7 +219,7 @@ export default function Orders() {
                   required
                 >
                   <option value="">-- Choose a Service --</option>
-                  {services.map(service => (
+                  {services.map((service) => (
                     <option key={service.id} value={service.id}>
                       {service.name} (₹{service.price})
                     </option>
@@ -217,34 +239,37 @@ export default function Orders() {
               </div>
 
               <div className="col-md-6">
-  <label className="form-label">Total</label>
-  <input
-    type="number"
-    name="total"
-    className="form-control"
-    value={form.total}
-    readOnly
-    required
-  />
-</div>
+                <label className="form-label">Total</label>
+                <input
+                  type="number"
+                  name="total"
+                  className="form-control"
+                  value={form.total}
+                  readOnly
+                  required
+                />
+              </div>
 
-<div className="col-md-6">
-  <label className="form-label">Special Instructions</label>
-  <textarea
-    name="specialInstructions"
-    className="form-control"
-    value={form.specialInstructions}
-    onChange={handleChange}
-    rows="1"
-    placeholder="Any special requests..."
-  ></textarea>
-</div>
-
+              <div className="col-md-6">
+                <label className="form-label">Special Instructions</label>
+                <textarea
+                  name="specialInstructions"
+                  className="form-control"
+                  value={form.specialInstructions}
+                  onChange={handleChange}
+                  rows="1"
+                  placeholder="Any special requests..."
+                ></textarea>
+              </div>
             </div>
 
             <div className="mt-4 text-center">
-              <button type="submit" className="btn btn-primary px-5">
-                Submit Order
+              <button
+                type="submit"
+                className="btn btn-primary px-5"
+                disabled={loading}
+              >
+                {loading ? "Submitting..." : "Submit Order"}
               </button>
             </div>
           </form>
@@ -254,48 +279,50 @@ export default function Orders() {
           )}
         </div>
 
-     {/* Services Table */}
-<h3 className="fw-bold mb-3">Available Services</h3>
-<div className="card shadow-sm mb-5">
-  <div className="card-body table-responsive">
-    <table className="table table-hover">
-      <thead className="table-light">
-        <tr>
-          <th>Name</th>
-          <th>Duration</th>
-          <th>Price</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {services.map((service) => (
-          <tr key={service.id}>
-            <td>{service.name}</td>
-            <td>{service.duration}</td>
-            <td>₹{service.price}</td>
-            <td>
-              <span
-                className={`badge ${
-                  service.status === "Active" ? "bg-success" : "bg-secondary"
-                }`}
-              >
-                {service.status}
-              </span>
-            </td>
-          </tr>
-        ))}
-        {services.length === 0 && (
-          <tr>
-            <td colSpan="4" className="text-center text-muted">
-              No services available.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-</div>
-
+        {/* Services Table */}
+        <h3 className="fw-bold mb-3">Available Services</h3>
+        <div className="card shadow-sm mb-5">
+          <div className="card-body table-responsive">
+            <table className="table table-hover">
+              <thead className="table-light">
+                <tr>
+                  <th>Name</th>
+                  <th>Duration</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {services.length > 0 ? (
+                  services.map((service) => (
+                    <tr key={service.id}>
+                      <td>{service.name}</td>
+                      <td>{service.duration}</td>
+                      <td>₹{service.price}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            service.status === "Active"
+                              ? "bg-success"
+                              : "bg-secondary"
+                          }`}
+                        >
+                          {service.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="text-center text-muted">
+                      No services available.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
