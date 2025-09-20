@@ -1,0 +1,65 @@
+
+/* Remove dropdown arrow */
+.navbar .dropdown-toggle::after {
+  display: none !important;
+}
+.hero-section {
+  background: url("https://t4.ftcdn.net/jpg/07/45/22/89/360_F_745228939_8rxdozPnESWecRCEpsq4gPrYb5Cx6EBt.jpg")
+    no-repeat center center/cover;
+  min-height: 100vh;
+  position: relative;
+}
+/* Navbar link hover effect */
+.navbar-nav .nav-link {
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #ff9800 !important; /* warm orange */
+}
+
+/* Buttons (Login / Logout) */
+.navbar .btn {
+  transition: all 0.3s ease;
+}
+
+/* Login/Signup hover */
+.navbar .btn[href*="login"]:hover,
+.navbar .btn[href*="Login"]:hover {
+  background-color: #ff9800 !important; /* orange background */
+  color: #fff !important;
+}
+
+/* Logout hover */
+.navbar .btn[href*="logout"]:hover,
+.navbar .btn[href*="Logout"]:hover {
+  background-color: #ff9800 !important; /* same orange */
+  color: #fff !important;
+}
+
+
+/* Optional dark overlay for readability */
+.hero-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.hero-section .container {
+  position: relative;
+  z-index: 2;
+}
+.service-card {
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15);
+}
+

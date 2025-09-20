@@ -1,0 +1,85 @@
+/* LandingPage.css */
+.landing-bg {
+  background-color: #0a0a0a;
+  background-image: radial-gradient(circle at center, #0a0a0a, #121212);
+  color: #00f0ff;
+}
+
+.landing-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 4rem;
+  color: #00f0ff;
+  text-shadow: 0 0 10px #00f0ff;
+}
+
+.landing-subtitle {
+  font-family: 'Orbitron', sans-serif;
+  color: #88ffff;
+}
+
+.btn-neon {
+  background: linear-gradient(90deg, #00f0ff, #0050ff);
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  text-shadow: 0 0 5px #00f0ff;
+  box-shadow: 0 0 20px #00f0ff;
+  border: none;
+}
+.btn-neon:hover {
+  box-shadow: 0 0 40px #00f0ff;
+}
+
+/* Login.css */
+.login-bg {
+  background-color: #0a0a0a;
+  color: #00f0ff;
+}
+
+.login-card {
+  background-color: #111;
+  border-radius: 1rem;
+  box-shadow: 0 0 20px #00f0ff;
+}
+
+.login-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  color: #00f0ff;
+  text-shadow: 0 0 10px #00f0ff;
+}
+
+.login-subtitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  color: #88ffff;
+}
+
+.login-input {
+  background-color: #222;
+  border: none;
+  color: #00f0ff;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.login-input::placeholder {
+  color: #88ffff;
+}
+
+.btn-login {
+  background: linear-gradient(90deg, #00f0ff, #0050ff);
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  box-shadow: 0 0 20px #00f0ff;
+  border: none;
+}
+
+.btn-login:hover {
+  box-shadow: 0 0 40px #00f0ff;
+}
+
+.hint {
+  color: #555;
+  font-size: 0.8rem;
+}
